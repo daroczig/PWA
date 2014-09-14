@@ -21,15 +21,6 @@ zc <- function(p_d, inc, start) {
   z
 }
 
-#' Outlier detection function
-#' @param x x
-#' @param z z
-#' @return vector index of outliers
-#' @export
-out <- function (x, z) {
-    mx <- scale(x, scale = TRUE, center = TRUE)
-    which(mx >= z | mx <= -z)
-}
 
 #' Root-mean-square error function
 #' @param act act
@@ -64,6 +55,7 @@ rmse <- function(act, pred) {
 
     rmse
 }
+
 
 #' Peak detector functoin
 #' @param p pressure signal
@@ -132,6 +124,7 @@ peak <- function(p,ecg,sr = 1000, t = 0.7, dt = TRUE){
 
 }
 
+
 #' Averaging functoin
 #' @param p raw pressure signal
 #' @param c cycle detector ouput (borders)
@@ -177,6 +170,7 @@ avg <- function(p, c, rm = 0){
     return(press_mean)
 }
 
+
 #' BP calibration function
 #' @param inp data file
 #' @param max max
@@ -198,6 +192,7 @@ cal <- function (inp, max, mean, min, central = TRUE){
     }
   pr.ce
 }
+
 
 #' Pulse Wave Analysis
 #' @param p p
@@ -314,6 +309,7 @@ pwa <- function(p, abs) {
 
 }
 
+
 #' Wave-free period detector function
 #' @param p averaged, scaled pressure wave
 #' @param inc location of incisura (end-systole)
@@ -339,6 +335,7 @@ wfp <- function(p, inc, end){
     as.numeric(c(wfp.i, tau))
 
 }
+
 
 #' Intersecting tangents function
 #' @param bp raw blood pressure recording
@@ -411,6 +408,7 @@ foot <- function (bp, c, d){
 
 }
 
+
 #' Process function
 #' @param adat raw, unprocessed data file
 #' @param ekg pressure/ECG-based cycle recognition
@@ -443,6 +441,7 @@ proc <- function(adat, ekg = TRUE, thres = 0.9, freq = 1000, dt = TRUE){
     return (c)
 
 }
+
 
 #' FFR function
 #' @param pp raw proximal pressure waveform

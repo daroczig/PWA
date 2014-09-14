@@ -3,12 +3,12 @@
 \alias{out}
 \title{Outlier detection function}
 \usage{
-out(x, z)
+out(x, z = 0.7)
 }
 \arguments{
-\item{x}{x}
+\item{x}{numeric vector}
 
-\item{z}{z}
+\item{z}{standardized threshold}
 }
 \value{
 vector index of outliers
