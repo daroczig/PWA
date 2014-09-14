@@ -4,7 +4,7 @@ library("signal")
 
 # ZERO CROSSING FUNCTION --------------------------------------------
 zc <- function(p_d, inc, start){
-  
+
   if (isTRUE(inc)){
     s<-which.min(p_d[start:(start+300)])+start
     r<-which.max(p_d[s:(s+100)])+s
@@ -13,10 +13,10 @@ zc <- function(p_d, inc, start){
     s <- start-100
     r<-which.max(p_d[s:(s+99)])+s
   }
-  
+
   rm<-which.min(p_d[r:(r+50)])+r
   z<-which.min(abs(p_d[r:rm]))+r
-  
+
   #   abline(v=r, col="red")
   #    abline(v=z, col="blue")
   #    abline(v=rm, col="green")
@@ -37,29 +37,29 @@ out <- function (x,z){
 rmse <- function(act, pred){
   act<-na.omit(act)
   pred<-na.omit(pred)
-  
+
   longest <- max(length(act), length(pred))
   shortest <- min(length(act), length(pred))
   null <- rep(length.out=(longest-shortest), 0)
-  
+
   if (length(act)>length(pred)){
     pred1<-c(pred,null)
     error<-act-pred1
     rmse <- sqrt(mean(error^2))
   }
-  
+
   if (length(pred)>length(act)){
     act1<-c(act,null)
     error<-act1-pred
     rmse <- sqrt(mean(error^2))
   }
-  
+
   if (length(pred)==length(act)){
     error<-act-pred
     rmse <- sqrt(mean(error^2))
   }
   return(rmse)
-# end of function --  
+# end of function --
 }
 
 # PEAK DETECTOR FUNCTION --------------------------------------------
@@ -69,39 +69,39 @@ peak <- function(p,ecg,sr,t,dt){
   # sr - sampling rate (default = 1000 Hz)
   # t - threshold (default = 0.7)
   # dt - detrend (y/n)
-  
+
   if(exists("t")){
     t <- t
   }else{
     t <- 0.7
   }
-  
+
   if(exists("sr")){
     sr <- sr
   }else{
     sr <- 1000
   }
-  
+
   if (isTRUE(dt)){
     p1 <- resid(lm(diff(p,150) ~ seq(along = diff(p,150)))) # detrending
   }else{
     p1 <- p
   }
   p2 <- ma(p1,80) # smoothing
-  
+
   if (length(ecg)>100){
     # Detection based on ECG
     print("Peak detection based on ECG")
     ecg1 <- resid(lm(ecg ~ seq(along = ecg))) # ECG detrending X
     ecg2 <- diff(ecg1, 10) # ECG differencing (-10 data points) Y
-    
+
     inc <- sr/10
     window <- length(ecg2)
     i <- 1
     n <- 0
     ciklus <- 0
     R <- 0
-    
+
     ecg2[ecg1<=max(ecg2)*t] <- 0
     while (i<=window-1){
       if(ecg2[i]>0){
@@ -123,7 +123,7 @@ peak <- function(p,ecg,sr,t,dt){
     # Detection based on pressure alone
     print("Peak detection based on pressure")
     k <- max(p2, na.rm=T)*t # threshold
-    
+
     p2[which(p2<k)] <- 0
     p2[which(p2>k)] <- k
     p3 <- diff(p2)
@@ -140,32 +140,32 @@ avg <- function(p, c, rm=0){
   # p - raw pressure signal
   # c - cycle detector ouput (borders)
   # rm - outlier removal threshold (default = 0)
-  
+
   if (rm!=0){
     rm <- rm
   }
-  
+
   # cycle number
   cn <- length(c)-1
-  
+
   # dataframe initialization
   h <- max(diff(c)) # maximal cycle length
   press <- data.frame(matrix(ncol = h+1, nrow = cn))
-  
+
   # dataframe fill-up
   for (i in 1:cn){
     press[i,] <- p[c[i]:(c[i]+h)]
   }
-  
+
   # average aortic waveform
   press_mean <- apply(press,2,mean,na.rm=T)
-  
+
   # RMSE from the mean curve
   press.error <- 0
   for (i in 1:cn){
     press.error[i] <- rmse(as.numeric(press[i,]), press_mean) # root mean square error
   }
-  
+
   # Handling with outlier cycles
   if (rm!=0){
     outliers <- out (press.error, rm)
@@ -180,7 +180,7 @@ avg <- function(p, c, rm=0){
     print("Keep outliers")
   }
   return(press_mean)
-# end of function --  
+# end of function --
 }
 
 # BP CALIBRATION FUNCTION -------------------------------------------
@@ -188,7 +188,7 @@ cal <- function (inp, max, mean, min, central){
   # inp - data file
   # central - T: central; F: peripheral
   mini <- min(inp[1:500])
-  
+
   if(central){
     print("Central waveform scaled")
     pr.ce <- min+((inp-mini)*((mean-min)/(mean(inp)-mini)))
@@ -203,7 +203,7 @@ cal <- function (inp, max, mean, min, central){
 # PWA FUNCTION ------------------------------------------------------
 pwa <- function(p, abs){
   if (is.na(abs)){abs <- F}
-  
+
   # 4. derivative
   p.dif <- diff(p, 20, 4)
 
@@ -214,7 +214,7 @@ pwa <- function(p, abs){
   inc.i <- as.numeric(zc(p.dif,inc=T,250)) # incisura time index based on zero crossing function
   pd.i2<-max(which(p==min(p[inc.i:length(p)], na.rm = T))) # end of cycle (diastole)
   pp <- ps-pd # pulse pressure
-  
+
   plot(p, type="l", bty="l", las=1, xlab="time[ms]", ylab="pressure[mmHg]", lwd=2)
   text(700,100,"Click around P1 and hit ESC")
   p1.i<-identify(p, plot=F) # identify and ESC
@@ -224,7 +224,7 @@ pwa <- function(p, abs){
   }else{
     to<-p1.i+100-1
     from<-p1.i-100
-  
+
   if(to>ps.i & p1.i<ps.i){
     to <- ps.i
   }
@@ -232,30 +232,30 @@ pwa <- function(p, abs){
   if(from<ps.i & p1.i>ps.i){
     from <- ps.i
   }
-  
+
   if(from<80){
     from <- 80
   }
-  
-  
+
+
   if(p1.i-100<ps.i & p1.i>ps.i){p1.i <- ps.i+100}
-  
+
   p1.i2 <- zc(p.dif,inc=F,p1.i) # p1 detection based on zero crossing
   #p1.i2 <- zc((p.dif[(from-80):(to-80)]),0,0) # p1 detection based on zero crossing
   p1.i2 <- as.numeric(substr(names(p1.i2),2,4))
   if(p1.i>ps.i){p1.i2 <- p1.i2-80}
   } # else for absolute detection end
-  
+
   p1<-as.numeric(p[p1.i2]-pd) # p1 pressure measured from diastole
-    
+
   plot(p, type="l", bty="l", las=1, xlab="time[ms]", ylab="pressure[mmHg]", lwd=2)
-  
+
   points(ps.i, ps, col="red", pch=19)
   points(pd.i, pd, col="blue", pch=19)
   points(inc.i, p[inc.i], col="darkgreen", pch=19)
   points(p1.i2, p[p1.i2], col="magenta", pch=19)
   points(pd.i2, p[pd.i2], col="darkblue", pch=19)
-  
+
   # Augmentation index
   if(p1<=pp & p1.i2<ps.i){
     ap <- pp-p1
@@ -266,21 +266,21 @@ pwa <- function(p, abs){
     print("C type")
   }
   aix <- 100*ap/pp
-  
+
   # 75/min HR normalized Aix
   hr <- 60/((pd.i2-pd.i)/1000)
   aix.75 <- aix-(0.39*(75-hr))
-  
+
   # SEVR determination
   tti<-sum(p[pd.i:inc.i]) # systolic AUC
   dti<-sum(p[inc.i:pd.i2]) # distolic AUC
   sevr<-dti/tti # aka Buckberg-index
-  
+
   # Form factor
   ff <- mean(p, na.rm = T)/pp
   pressures <- list("SBPc"=round(ps,digits=2), "DBPc"=round(pd,digits=2), "PPc"=round(pp,digits=2), "P1"=round(p1,digits=2), "tP1"=round(p1.i2, digits = 2), "AP"=round(ap,digits=2), "AiX"=round(aix,digits=2), "AiX@75"=round(aix.75,digits=2), "Form"=round(ff,digits=2), "T"=round((pd.i2-pd.i)/1000,digits=2), "HR"=round(hr,digits=2), "incisura"=round(inc.i,digits=2), "start"=round(pd.i, digits = 2) , "end"=round(pd.i2, digits = 2),"TTI"=round(tti, digits = 2), "DTI"=round(dti, digits = 2),"SEVR"=round(sevr, digits = 2))
-  
-# end of function --  
+
+# end of function --
 }
 
 # WAVE-FREE PERIOD DETECTOR FUNCTION --------------------------------
@@ -288,21 +288,21 @@ wfp <- function(p, inc, end){
   # p - averaged, scaled pressure wave
   # inc - location of incisura (end-systole)
   # end - end of the pressure wave
-  
+
   # wave-free period beginning-end
   wfp.i<-c(inc+(0.25*(end-inc)), end-5)
-  
+
   # plot
   xx <- c(wfp.i[1],wfp.i[1]:wfp.i[2],wfp.i[2])
   yy <- c(pac[wfp.i[2]],pac[wfp.i[1]:wfp.i[2]],pac[wfp.i[2]])
   polygon(xx, yy, col="pink", lty="blank")
-  
+
   da <- sum(pac[wfp.i[1]:wfp.i[2]])
   tau <- da/(pac[wfp.i[1]]-pac[wfp.i[2]])/2000
-  
+
   # wave-free period
   wfp<-p[wfp.i[1]:wfp.i[2]]
-  
+
   return(as.numeric(c(wfp.i, tau)))
 # end of function --
 }
@@ -326,14 +326,14 @@ foot <- function (bp, c, d){
   # correction of first zeros
   d.i <- d.i[-1]
   dp.max <- dp.max[-1]
-  
+
   dp.max <- dp.max+20 # correction for the lag due to differentiation
   d.min <- p.s[d.i]
-  
+
   koef <- data.frame(matrix(ncol = 2, nrow = l)) # dataframe initialization
   colnames(koef) <- c("a","m")
   isect <- 0
-  
+
   for(i in 1:l){
     k <- 1
     for (ii in 1:15){
@@ -348,17 +348,17 @@ foot <- function (bp, c, d){
   }
   it <- dp.max+isect # location of the intersection relative to the maximum first derivative
   ptt <- it-c
-  
+
   if(isTRUE(d)){
     # Drawings if requested
     par(mfrow=c(3,1), mar=c(2,2,2,2))
     plot(adat$V1, type="l", col="darkgreen", bty="l")
     points(c,adat$V1[c(c)], pch=16, col="red")
-    
+
     plot(bp, type="l", bty="l")
     points(it,bp[c(it)], pch=4, col="blue")
     points(c,bp[c(c)], pch=16, col="red")
-    
+
     plot(ptt, pch=15, col="blue", bty="l", xaxt="n", ylim=c(0.98*min(ptt), 1.02*max(ptt)))
     abline(h=mean(ptt)+(1.96*sd(ptt)), lty=2, col="red")
     abline(h=mean(ptt)-(1.96*sd(ptt)), lty=2, col="red")
@@ -377,36 +377,36 @@ proc <- function(adat, ekg, thres, freq, dt){
   # dt - detrending
   p<-adat$V2
   ecg<-adat$V1
-  
+
   if (is.na(thres)){
     thres <- 0.9
   }
-  
+
   if (is.na(freq)){
     freq <- 1000
   }
-  
+
   if (isTRUE(dt)){
     dt <- T
   }
-  
+
   if (isTRUE(ekg)){
     # Call with ECG, 1000 Hz, treshold=0.7, detrending before analysis
-    c <- peak(p, ecg, freq, thres, dt)    
+    c <- peak(p, ecg, freq, thres, dt)
   }else{
     # Call without ECG, 1000 Hz, treshold=0.6, detrending before analysis
     c <- peak(p, ecg="F", freq, thres, dt)
   }
-  
+
   # Some plots
   par(mfrow=c(2,1), mar=c(4,4,2,2))
   plot(ecg, type="l", col="darkgreen", bty="l")
   abline(v=c, col="red")
-  
+
   plot(p, type="l", bty="l")
   abline(v=c, col="blue")
   return (c)
-  
+
   # end function --
 }
 
@@ -415,18 +415,18 @@ proc <- ffr(pp, pd, draw){
   # raw proximal pressure waveform
   # raw distal pressure waveform
   # draw the results (y/n)
-  
+
   # Savitzky-Golay smoothing
   pp<-sgolayfilt(na.omit(pp),p=3,n=21)
   pd<-sgolayfilt(na.omit(pd),p=3,n=21)
-  
+
   auto <- ccf(pp, pd, plot=F, lag.max = 100) # cross correlation
   l <- auto$lag[which(auto$acf==max(auto$acf))] # optimal lag
   print (paste("Lag =", l))
-  
+
   pp1 <- tail(pp,length(pd)-l)
   pd1 <- head(pd,length(pd)-l)
-  
+
   cikl <- peak(pd1, 0, 1000, 0.7, dt)
   # Ciklusok szama
   cn <- length(cikl)
@@ -442,16 +442,16 @@ proc <- ffr(pp, pd, draw){
   # dataframe initialization
   pres_m <- data.frame(matrix(ncol = 4, nrow = cn))
   colnames(pres_m) <- c("prox_mean","dist_mean", "FFR", "iFR")
-  
+
   for (i in 1:cn){
     # incisura detektalas
     inc.i.p <- zc(diff(pp1[dia[i]:(dia[i]+h)], 20, 4),250,0)
     inc.i.d <- zc(diff(pd1[dia[i]:(dia[i]+h)], 20, 4),250,0)
-    
+
     # ciklus-vege diastole
     pp.d.i<-which(pp1==min(pp1[inc.i.p:h], na.rm = T))
     pd.d.i<-which(pd1==min(pd1[inc.i.d:h], na.rm = T))
-        
+
     pres_m[i,1] <- mean(pp1[dia[i]:(dia[i]+h)])
     pres_m[i,2] <- mean(pd1[dia[i]:(dia[i]+h)])
     if (i==1){
@@ -579,4 +579,3 @@ colnames(summary)=c("brachial","carotid","femoral","radial")
 
 write.table(summary, file=paste(id,"_waves.csv"), sep = ";", dec=",", col.names = T, qmethod = "double", na="NA", row.names=FALSE)
 write.table(pressures, file=paste(id,"_SUM.csv"), sep = ";", dec=",", col.names = T, qmethod = "double", na="-999", row.names=FALSE)
-
