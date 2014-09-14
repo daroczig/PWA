@@ -1,41 +1,38 @@
-# Files read-in -----------------------------------------------------
+## loading tcltk for file chooser dialog
 library(tcltk)
 
-# setwd("~/Documents/Munka/K3/2013 - IKER2/PWV")
- setwd("C:/K3/Projektek/2013 - IKER2/PWV")
+## set working directory to the package-bundled folder holding the demo files
+setwd(system.file('demofiles', package = 'PWA'))
 
-# Cuff-measurements source file
-brachialis <- read.delim("iker2_blood_pressure.txt", dec=",")
-brachialis <- brachialis[-c(4,5)]
-colnames(brachialis)<-c("id","sbp","dbp")
+## Cuff-measurements source file
+brachialis <- read.delim("blood_pressure.txt", dec = ",")
 
-# Open recordings for one patient
+## Open recordings for one patient
 filename <- tk_choose.files()
-filename <- strsplit(basename(filename)," - ")
-fname <- substring(filename,1, nchar(filename)-4)
-id <- unique(substr(fname, 1,6))
+filename <- strsplit(basename(filename), " - ")
+fname <- substring(filename, 1, nchar(filename) - 4)
+id <- unique(substr(fname, 1, 6))
 
-# file sorrend: _b,_c,_f,_r
+## order of files should be: _b,_c,_f,_r
+sbpb <- brachialis$sbp[brachialis$id == id]
+dbpb <- brachialis$dbp[brachialis$id == id]
+ppb  <- sbpb - dbpb
+mbpb <- dbpb + (ppb) / 3
 
-sbpb <- brachialis$sbp[brachialis$id==id]
-dbpb <- brachialis$dbp[brachialis$id==id]
-ppb <- sbpb-dbpb
-mbpb <- dbpb+(ppb)/3
+## Open the brachial recording
+adat <- read.table(as.character(filename[1]), header = FALSE, sep = "\t", dec = ".")
+c    <- proc(adat, ekg=T, 0.8, 1000, dt)
 
-
-
-
-# Open the brachial recording
-adat <- read.table(as.character(filename[1]), header=F, sep = "\t", dec=".")
-c <- proc(adat, ekg=T, 0.8, 1000, dt)
-
-ptt.b <- foot(adat$V2, c, d=T)
-if(out(ptt.b,1.6)>0){ ptt.b <- ptt.b[-c(out(ptt.b,1.6))]}
+ptt.b <- foot(adat$V2, c, d = TRUE)
+if (out(ptt.b, 1.6) > 0)
+    ptt.b <- ptt.b[-c(out(ptt.b, 1.6))]
 ptt.b <- mean(ptt.b)
 
 # correction for wrong cycles
 #c <- c[-c(1,4)]
 #c <- c[-length(c)]
+
+## TODO: clenup
 
 pa <- avg(adat$V2, c, rm=1.2)
 dev.off()
