@@ -12,5 +12,4 @@ BugReports: https://github.com/daroczig/PWA/issues
 License: AGPL-3
 Depends:
     forecast,
-    tcltk,
     signal
