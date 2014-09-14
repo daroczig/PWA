@@ -1,0 +1,16 @@
+Package: PWA
+Title: Pulse Wave Analysis in R
+Maintainer: Gergely Daróczi <daroczig@rapporter.net>
+Author: Tamás Horváth <tom.horvath.md@gmail.com>, Gergely Daróczi
+    <daroczig@rapporter.net>
+Type: Package
+Encoding: UTF-8
+Description: An R package for Pulse Wave Analysis developed at CIRG.hu.
+Version: 0.1
+Date: 2014-09-14
+BugReports: https://github.com/daroczig/PWA/issues
+License: AGPL-3
+Depends:
+    forecast,
+    tcltk,
+    signal

@@ -1,7 +1,3 @@
-library("forecast")
-library("tcltk")
-library("signal")
-
 # ZERO CROSSING FUNCTION --------------------------------------------
 zc <- function(p_d, inc, start){
 
