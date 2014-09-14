@@ -16,4 +16,7 @@ vector index of outliers
 \description{
 Outlier detection function
 }
+\examples{
+PWA:::out(runif(10), 0.9)
+}
 
